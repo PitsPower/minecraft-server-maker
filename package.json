@@ -1,0 +1,29 @@
+{
+  "name": "minecraft-server-maker",
+  "version": "1.0.0",
+  "description": "A tool for creating Minecraft servers",
+  "main": "src/index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha test/test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WheatleyTheCoder/minecraft-server-maker.git"
+  },
+  "author": "WheatleyTheCoder <slendermanwithaface@gmail.com> (http://project2.neocities.org/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/WheatleyTheCoder/minecraft-server-maker/issues"
+  },
+  "homepage": "https://github.com/WheatleyTheCoder/minecraft-server-maker#readme",
+  "dependencies": {
+    "chai": "3.5.0",
+    "fs-extra": "1.0.0",
+    "mocha": "3.2.0",
+    "request": "2.79.0",
+    "sanitize-filename": "1.6.1"
+  }
+}
