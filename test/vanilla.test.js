@@ -39,27 +39,27 @@ describe('vanilla.getServerUrl()', function() {
 });
 describe('vanilla.getServerChecksum()', function() {
     it('should get the server checksum for the latest version', function(done) {
-        vanilla.getServerChecksum('1.11.2',function(err,url) {
-            expect(url).to.equal('f00c294a1576e03fddcac777c3cf4c7d404c4ba4');
+        vanilla.getServerChecksum('1.11.2',function(err,checksum) {
+            expect(checksum).to.equal('f00c294a1576e03fddcac777c3cf4c7d404c4ba4');
             done();
         });
     });
     it('should get the server checksum for any given version', function(done) {
-        vanilla.getServerChecksum('1.7.10',function(err,url) {
-            expect(url).to.equal('952438ac4e01b4d115c5fc38f891710c4941df29');
+        vanilla.getServerChecksum('1.7.10',function(err,checksum) {
+            expect(checksum).to.equal('952438ac4e01b4d115c5fc38f891710c4941df29');
             done();
         });
     });
     it('should return null for a beta version', function(done) {
-        vanilla.getServerChecksum('b1.6.2',function(err,url) {
-            expect(url).to.be.null;
+        vanilla.getServerChecksum('b1.6.2',function(err,checksum) {
+            expect(checksum).to.be.null;
             done();
         });
     });
 });
 describe('vanilla.downloadServer()', function() {
     it('should get the server file for the given version', function(done) {
-        vanilla.downloadServer('testing','1.7.10',function(err,url) {
+        vanilla.downloadServer('vanilla','1.7.10',function(err,url) {
             expect(!err).to.be.true;
             done();
         });
