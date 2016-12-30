@@ -64,11 +64,6 @@ module.exports.getServerChecksum = function(version,cb) {
         }
     });
 }
-function getTextNodes(el) {
-    return $(el).find(':not(iframe)').addBack().contents().filter(function() {
-        return this.nodeType==3;
-    });
-}
 module.exports.downloadServer = function(name,version,cb) {
     var _this = this;
     
