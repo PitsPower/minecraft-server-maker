@@ -1,6 +1,8 @@
 var chai = require('chai');
 var expect = chai.expect;
 
+var fs = require('fs-extra');
+
 var vanilla = require('../src/server-types/vanilla');
 
 describe('vanilla.getDataUrl()', function() {
@@ -59,7 +61,13 @@ describe('vanilla.getServerChecksum()', function() {
 });
 describe('vanilla.downloadServer()', function() {
     it('should get the server file for the given version', function(done) {
-        vanilla.downloadServer('vanilla','1.7.10',function(err,url) {
+        vanilla.downloadServer('vanilla','1.11.2',function(err) {
+            expect(!err).to.be.true;
+            done();
+        });
+    });
+    it('should create a data file', function(done) {
+        fs.access(__dirname+'/../servers/vanilla/msm_data.json', function(err) {
             expect(!err).to.be.true;
             done();
         });

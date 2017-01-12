@@ -15,6 +15,9 @@ module.exports.version.getAll = function(cb) {
         url: 'https://files.minecraftforge.net',
         scripts: ['http://code.jquery.com/jquery.min.js'],
         done: function(err,window) {
+            // istanbul ignore if
+            if (err) return cb(err);
+            
             var $ = window.$;
             
             $(".li-version-list li").each(function() {
@@ -30,6 +33,9 @@ module.exports.version.getLatestRelease = function(cb) {
         url: 'https://files.minecraftforge.net',
         scripts: ['http://code.jquery.com/jquery.min.js'],
         done: function(err,window) {
+            // istanbul ignore if
+            if (err) return cb(err);
+            
             var $ = window.$;
 
             cb(err,$(".li-version-list li").first().text().trim());
@@ -42,6 +48,9 @@ module.exports.getServerUrl = function(version,cb) {
         url: 'https://files.minecraftforge.net/maven/net/minecraftforge/forge/index_'+version+'.html',
         scripts: ['http://code.jquery.com/jquery.min.js'],
         done: function(err,window) {
+            // istanbul ignore if
+            if (err) return cb(err);
+            
             var $ = window.$;
 
             var relativeLink = $('.downloadsTable td').eq(2).find('li').eq(1).find('.info-link').attr('href');
@@ -56,6 +65,9 @@ module.exports.getServerChecksum = function(version,cb) {
         url: 'https://files.minecraftforge.net/maven/net/minecraftforge/forge/index_'+version+'.html',
         scripts: ['http://code.jquery.com/jquery.min.js'],
         done: function(err,window) {
+            // istanbul ignore if
+            if (err) return cb(err);
+            
             var $ = window.$;
 
             var hash = $('.downloadsTable td').eq(2).find('li').eq(1).find('.info').contents().filter(function() {return this.nodeType==3}).eq(3).text().trim();
@@ -67,39 +79,61 @@ module.exports.getServerChecksum = function(version,cb) {
 module.exports.downloadServer = function(name,version,cb) {
     var _this = this;
     
-    server.init(function(err) {
-        server.createFolder(name,function(err) {
-            _this.getServerUrl(version,function(err,url) {
-                var pathname = __dirname+'/../../servers/'+name+'/installer.jar';
-                
-                request(url)
-                    .pipe(fs.createWriteStream(pathname))
-                    .on('finish',function() {
-                        _this.getServerChecksum(version,function(err,hash) {
-                            checksum.file(pathname, function(err,fileHash) {
-                                if (hash==fileHash) {
+    server.prepare(name,function() {
+        _this.getServerUrl(version,function(err,url) {
+            // istanbul ignore if
+            if (err) return cb(err);
+            
+            var pathname = __dirname+'/../../servers/'+name+'/installer.jar';
+            
+            request(url)
+                .pipe(fs.createWriteStream(pathname))
+                .on('finish',function() {
+                    _this.getServerChecksum(version,function(err,hash) {
+                        checksum.file(pathname, function(err,fileHash) {
+                            // istanbul ignore else
+                            if (hash==fileHash) {
+                                server.createDataFile(name,version,'modded',function(err) {
                                     cb(err);
-                                } else {
-                                    fs.remove(pathname, function(err) {
-                                        _this.download(name,version,cb);
-                                    });
-                                }
-                            });
+                                });
+                            } else {
+                                fs.remove(pathname, function(err) {
+                                    _this.downloadServer(name,version,cb);
+                                });
+                            }
                         });
                     });
-            });
+                });
         });
     });
 }
 module.exports.installServer = function(name,cb) {
+    var pathname = __dirname+'/../../servers/'+name;
+    
     var installerProcess = proc.spawn(
         'java',
         ['-jar', 'installer.jar', '-installServer'],
-        {cwd: __dirname+'/../../servers/'+name}
+        {cwd: pathname}
     );
     installerProcess.on('exit', function() {
-        fs.remove(__dirname+'/../../servers/'+name+'/installer.jar', function(err) {
-            cb(err);
+        fs.remove(pathname+'/installer.jar', function(err) {
+            // istanbul ignore if
+            if (err) return cb(err);
+            fs.readdir(pathname, function(err,files) {
+                // istanbul ignore if
+                if (err) return cb(err);
+
+//                for (var i=0;i<files.length;i++) {
+//                    if (files[i].indexOf('forge-')>-1) {
+//                        fs.renameSync(pathname+'/'+files[i],pathname+'/server.jar');
+//                        break;
+//                    }
+//                }
+                
+                fs.renameSync(pathname+'/'+files[0],pathname+'/server.jar');
+                
+                cb(err);
+            });
         });
     });
 }

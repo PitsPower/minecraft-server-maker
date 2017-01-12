@@ -13,6 +13,9 @@ module.exports.version.getData = function(cb) {
 }
 module.exports.version.getAll = function(cb) {
     this.getData(function(err,data) {
+        // istanbul ignore if
+        if (err) return cb(err);
+        
         var versions = data.versions;
         
         var serverVersions = [];
@@ -53,6 +56,9 @@ module.exports.version.getLatestSnapshot = function(cb) {
 
 module.exports.getDataUrl = function(version,cb) {
     this.version.getData(function(err,data) {
+        // istanbul ignore if
+        if (err) return cb(err);
+        
         var versions = data.versions;
         
         for (var i=0;i<versions.length;i++) {
@@ -65,6 +71,8 @@ module.exports.getDataUrl = function(version,cb) {
 }
 module.exports.getServerUrl = function(version,cb) {
     this.getDataUrl(version,function(err,url) {
+        // istanbul ignore if
+        if (err) return cb(err);
         request(url, function(err,response,body) {
             var server = JSON.parse(body).downloads.server;
             cb(err,server?server.url:null);
@@ -73,6 +81,8 @@ module.exports.getServerUrl = function(version,cb) {
 }
 module.exports.getServerChecksum = function(version,cb) {
     this.getDataUrl(version,function(err,url) {
+        // istanbul ignore if
+        if (err) return cb(err);
         request(url, function(err,response,body) {
             var server = JSON.parse(body).downloads.server;
             cb(err,server?server.sha1:null);
@@ -82,26 +92,32 @@ module.exports.getServerChecksum = function(version,cb) {
 module.exports.downloadServer = function(name,version,cb) {
     var _this = this;
     
-    server.init(function(err) {
-        server.createFolder(name,function(err) {
-            _this.getServerUrl(version,function(err,url) {
-                var pathname = __dirname+'/../../servers/'+name+'/server.jar';
-                
-                request(url)
-                    .pipe(fs.createWriteStream(pathname))
-                    .on('finish',function() {
-                        _this.getServerChecksum(version,function(err,hash) {
-                            checksum.file(pathname, function(err,fileHash) {
-                                if (hash==fileHash) {
-                                    cb(err);
-                                } else {
-                                    fs.remove(pathname, function(err) {
-                                        _this.download(name,version,cb);
-                                    });
-                                }
+    server.prepare(name,function() {
+        _this.getServerUrl(version,function(err,url) {
+            // istanbul ignore if
+            if (err) return cb(err);
+            
+            var dirname = __dirname+'/../../servers/'+name;
+            var pathname = dirname+'/server.jar';
+
+            request(url).pipe(fs.createWriteStream(pathname)).on('finish',function() {
+                _this.getServerChecksum(version,function(err,hash) {
+                    // istanbul ignore if
+                    checksum.file(pathname, function(err,fileHash) {
+                        // istanbul ignore if
+                        if (err) return cb(err);
+                        // istanbul ignore else
+                        if (hash==fileHash) {
+                            server.createDataFile(name,version,'vanilla',function(err) {
+                                cb(err);
                             });
-                        });
+                        } else {
+                            fs.remove(pathname, function(err) {
+                                _this.downloadServer(name,version,cb);
+                            });
+                        }
                     });
+                });
             });
         });
     });

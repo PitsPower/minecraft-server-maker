@@ -2,8 +2,9 @@ var fs = require('fs-extra');
 
 module.exports.folder = {};
 
-module.exports.init = function(cb) {
+module.exports.folder.create = function(cb) {
     fs.mkdir(__dirname+'/../servers', function(err) {
+        if (err && err.code=='EEXIST') err=null;
         cb(err);
     });
 }
@@ -12,9 +13,18 @@ module.exports.folder.remove = function(cb) {
         cb(err);
     });
 }
-module.exports.createFolder = function(name,cb) {
+function createFolder(name,cb) {
     fs.mkdir(__dirname+'/../servers/'+name, function(err) {
         cb(err);
+    });
+}
+module.exports.prepare = function(name,cb) {
+    this.folder.create(function(err) {
+        // istanbul ignore if
+        if (err) return cb(err);
+        createFolder(name,function(err) {
+            cb(err);
+        });
     });
 }
 module.exports.createDataFile = function(name,version,type,cb) {
